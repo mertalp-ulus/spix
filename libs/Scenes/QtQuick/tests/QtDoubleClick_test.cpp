@@ -244,10 +244,12 @@ TEST_F(DoubleClickGesture, PointerHandlerReleasesAfterDoubleClick)
 {
     auto* handler = window->findChild<QObject*>("tapHandler");
     ASSERT_NE(handler, nullptr);
-    server.mouseDoubleClick(spix::ItemPath("gestureWindow/tapTarget"));
-    deliver();
-    EXPECT_FALSE(handler->property("pressed").toBool());
-    EXPECT_EQ(count("tapDoubles"), 1);
+    for (int gesture = 1; gesture <= 3; ++gesture) {
+        server.mouseDoubleClick(spix::ItemPath("gestureWindow/tapTarget"));
+        deliver();
+        EXPECT_FALSE(handler->property("pressed").toBool());
+        EXPECT_EQ(count("tapDoubles"), gesture);
+    }
 }
 
 TEST_F(DoubleClickGesture, ForwardsEverySupportedButtonAndModifierCombination)

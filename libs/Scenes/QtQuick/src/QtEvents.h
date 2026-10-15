@@ -25,6 +25,7 @@ public:
 private:
     /// Keep track of which buttons are currently pressed
     MouseButton m_pressedMouseButtons = MouseButtons::None;
+    unsigned long m_lastDoubleClickTimestamp = 0;
 };
 
 } // namespace spix

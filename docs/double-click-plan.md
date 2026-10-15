@@ -49,7 +49,8 @@ tests must wait for an observable application result.
 ## Validation record
 
 Implemented: C++ command/API, mock backend, Qt Quick gesture, command tests,
-and a separate GUI test executable. No release has been approved.
+and a separate GUI test executable. The release tag identifies the immutable
+revision accepted by the release gates.
 
 Build configuration: MSVC 14.50.35717, Qt 6.11.0, Windows SDK 10.0.26100.0,
 Ninja, Release, `BUILD_SHARED_LIBS=OFF`, `SPIX_BUILD_TESTS=ON`,
@@ -61,6 +62,10 @@ Results:
 - Feature: all four CTest suites pass, including eight new command tests and
   nine real GUI cases. GUI coverage includes a TapHandler as well as MouseArea.
 - All nine GUI cases pass 100 consecutive CTest runs (stop-on-failure).
+- Repeated TapHandler gestures receive increasing event timestamps, separated
+  past the double-click interval as in Qt's test helper. This separates explicit
+  gestures without delaying delivery; constant zero timestamps would accumulate
+  later taps into the first gesture and suppress subsequent doubleTapped signals.
 - An isolated build with the backend disabled compiles successfully, passes
   the Qt positive control, and fails the Spix behavioral assertion with zero
   double-click activations. The working checkout is not changed by this check.

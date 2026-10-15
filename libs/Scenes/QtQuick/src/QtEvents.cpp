@@ -15,6 +15,7 @@
 #include <QObject>
 #include <QQuickItem>
 #include <QQuickWindow>
+#include <QStyleHints>
 
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
@@ -147,8 +148,13 @@ bool QtEvents::mouseDoubleClick(Item* item, Point loc, MouseButton button, KeyMo
     // Qt Quick also uses this mask to clear pointer grabs after the gesture.
     const Qt::MouseButtons releasedButtons = Qt::NoButton;
     const auto qtmod = getQtKeyboardModifiers(mod);
+    // Like QTest's complete gesture helper, separate successive gestures in the
+    // event time domain. TapHandler uses timestamps to distinguish tap sequences.
+    m_lastDoubleClickTimestamp += QGuiApplication::styleHints()->mouseDoubleClickInterval() + 1;
     auto postMouseEvent = [&](QEvent::Type type, Qt::MouseButtons buttons) {
-        QGuiApplication::postEvent(window, new QMouseEvent(type, windowLoc, eventCausingButton, buttons, qtmod));
+        auto event = new QMouseEvent(type, windowLoc, eventCausingButton, buttons, qtmod);
+        event->setTimestamp(++m_lastDoubleClickTimestamp);
+        QGuiApplication::postEvent(window, event);
     };
 
     // Queue the complete gesture without pumping events. Its final logical state
