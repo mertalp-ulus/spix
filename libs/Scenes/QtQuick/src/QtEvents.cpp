@@ -131,6 +131,36 @@ void QtEvents::mouseUp(Item* item, Point loc, MouseButton button, KeyModifier mo
     QGuiApplication::postEvent(window, event);
 }
 
+bool QtEvents::mouseDoubleClick(Item* item, Point loc, MouseButton button, KeyModifier mod)
+{
+    if (m_pressedMouseButtons != MouseButtons::None)
+        return false;
+
+    QPointF windowLoc;
+    auto window = getWindowAndPositionForItem(item, loc, windowLoc);
+    if (!window)
+        return false;
+
+    const auto eventCausingButton = getQtMouseButtonValue(button);
+    const Qt::MouseButtons pressedButtons = eventCausingButton;
+    // Match native double-click delivery: the released button is no longer held.
+    // Qt Quick also uses this mask to clear pointer grabs after the gesture.
+    const Qt::MouseButtons releasedButtons = Qt::NoButton;
+    const auto qtmod = getQtKeyboardModifiers(mod);
+    auto postMouseEvent = [&](QEvent::Type type, Qt::MouseButtons buttons) {
+        QGuiApplication::postEvent(window, new QMouseEvent(type, windowLoc, eventCausingButton, buttons, qtmod));
+    };
+
+    // Queue the complete gesture without pumping events. Its final logical state
+    // is released, so m_pressedMouseButtons remains unchanged.
+    postMouseEvent(QEvent::MouseButtonPress, pressedButtons);
+    postMouseEvent(QEvent::MouseButtonRelease, releasedButtons);
+    postMouseEvent(QEvent::MouseButtonPress, pressedButtons);
+    postMouseEvent(QEvent::MouseButtonDblClick, pressedButtons);
+    postMouseEvent(QEvent::MouseButtonRelease, releasedButtons);
+    return true;
+}
+
 void QtEvents::mouseMove(Item* item, Point loc)
 {
     QPointF windowLoc;
